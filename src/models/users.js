@@ -1,6 +1,10 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
-const bcrypt = require('bcrypt')
+const CryptoJs = require('crypto-js')
+const crypto = require('crypto')
+const key = crypto.randomBytes(32);
+const iv = crypto.randomBytes(16);
+var SimpleCrypto = require("simple-crypto-js").default;
 /// new model
 /// here we create the model to store the data in structured-way
 /**
@@ -15,6 +19,10 @@ const bcrypt = require('bcrypt')
  */
 
 var Schema = mongoose.Schema
+
+/// secret key
+// const key = 'testing-node'
+// var simpleCrypto = new crypto(key);
 
 /// we have to build schema for to store data in more structured way and after that create model
 var userSchema = new Schema({
@@ -32,6 +40,7 @@ var userSchema = new Schema({
         }
     },
     email: {
+        required: true,
         type: String,
         lowercase: true,
         unique: true,
@@ -43,7 +52,7 @@ var userSchema = new Schema({
     },
     password: {
         type: String,
-        trim: true,
+        // trim: true,
         lowercase: true,
         required: true,
         validate(value) {
@@ -57,27 +66,6 @@ var userSchema = new Schema({
     }
 })
 
-/// we can also create custom function in schema file also
-userSchema.statics.findByLoginCredentials = async function (emailId, password) {
-    console.log('findByLoginCredentials Called')
-    const user = await User.findOne({
-        email: emailId
-    })
-
-    if (!user) {
-        console.log('user is null')
-        throw new Error('Unable to login')
-    }
-
-    const isPasswordMatch = await bcrypt.compare(password, user.password)
-
-    if (!isPasswordMatch) {
-        console.log(`Password ${password} is not matched with ${user.password}`)
-        throw new Error('Unable to login')
-    }
-
-    return user
-}
 
 /// mongoose middleware 
 /// pre means an event runs before doing anything
@@ -88,17 +76,45 @@ userSchema.pre('save', async function (next) {
     console.log('pre saving 1')
 
     // run when user created or updated
-    if (self.isModified('password')) {
-        self.password = await bcrypt.hash(self.password, 10)
-    }
+    // if (self.isModified('password')) {
+
+    //     self.password = 
+
+
+
+    // }
 
     next()
 
 })
 
+/// we can also create custom function in schema file also
+userSchema.statics.findByLoginCredentials = async function (emailId, password) {
+    console.log('findByLoginCredentials Called')
+    var user = await User.findOne({
+        email: emailId
+    })
+
+    console.log(user['password'])
+
+    if (!user) {
+        console.log('user is null')
+        throw new Error('Unable to login')
+    }
+
+    if (password != user.password) {
+        throw new Error('Unable to login')
+    }
+
+    return user
+
+
+}
 
 
 const User = mongoose.model('User', userSchema)
+
+
 
 
 module.exports = User

@@ -2,7 +2,6 @@ const express = require('express')
 require('./db/mongoose')
 const User = require('./models/users')
 const Task = require('./models/tasks')
-const bcrypt = require('bcryptjs')
 const middleware = require('./middleware/middleware')
 
 const app = express()
