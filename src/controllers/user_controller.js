@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const User = require('../models/users');
+const jwt = require('jsonwebtoken')
 
 exports.createUser = async (req, res) => {
     console.log('request params: ', req.body)
@@ -19,9 +20,19 @@ exports.createUser = async (req, res) => {
         const newUser = new User(req.body)
 
         ///using async and await
-        const savingData = await newUser.save()
-        console.log(`savingData: ${JSON.stringify(savingData)}`)
-        res.status(200).send(savingData)
+        const user = await newUser.save()
+
+        let jwtToken = newUser.generateAuthToken()
+        console.log(jwtToken)
+
+        console.log(`savingData: ${JSON.stringify(user)}`)
+        /// response
+        const message = {
+            status: 200,
+            message: {user, jwtToken}
+        }
+        console.log(JSON.stringify(message))
+        res.status(200).send(message)
 
     } catch (error) {
         console.log(error['message'])
@@ -89,17 +100,19 @@ exports.loginUser = async (req, res) => {
 
         const user = await User.findByEmail(req.body.email);
 
-        const isMatch = isUserPasswordMatch(user, req);
+        const isMatch = await isUserPasswordMatch(user, req);
 
         if(!isMatch){
             throw new Error('Unable to login');
         }
 
+        let jwtToken = user.generateAuthToken
+        console.log(`jwtToken: ${jwtToken}`)
 
         /// response
         const message = {
             status: 200,
-            message: user
+            message: {user, jwtToken}
         }
         console.log(JSON.stringify(message))
         res.status(200).send(message)
@@ -165,15 +178,14 @@ function isUserPasswordMatch(user, req) {
     }
 
     let passwordField = user.password.split('$');
-    let salt = passwordField[0]
+    let salt = passwordField[0];
     let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
-    console.log(`hash ${hash}`)
-    console.log(`body password ${passwordField[1]}`)
+    console.log(`hash ${hash}`);
+    console.log(`body password ${passwordField[1]}`);
     if(hash === passwordField[1]){
-        console.log('success')
+        console.log('success');
+        return true;
     }
-
-
-    return true
+    return false;
 
 }

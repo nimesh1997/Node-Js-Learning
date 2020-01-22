@@ -3,8 +3,8 @@ require('./db/mongoose')
 const User = require('./models/users')
 const Task = require('./models/tasks')
 const middleware = require('./middleware/middleware')
-
 const userController = require('./controllers/user_controller')
+
 
 const app = express()
 const portNumber = process.env.PORT || 3100
@@ -18,7 +18,7 @@ app.use(express.json())
 
 /******************************************************CREATE USER************************************************************************************* */
 /// Users creation endpoint (apiUrl: localhost:3100/users)
-app.post('/createUsers', [userController.createUser])
+app.post('/createUser', [userController.createUser])
 
 /****************************************************************************************************************************************************** */
 
@@ -142,7 +142,7 @@ function validateReadAllUser(requestData) {
 /*************************************************************************login user *********************************************************************/
 
 
-app.post('/loginUser', async (req, res) => {
+app.post('/loginuser', async (req, res) => {
     try {
         const isValid = validateLoginUser(req);
 

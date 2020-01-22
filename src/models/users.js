@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
 const crypto = require('crypto')
+const jwt = require('jsonwebtoken')
 /// new model
 /// here we create the model to store the data in structured-way
 /**
@@ -15,6 +16,8 @@ const crypto = require('crypto')
  */
 
 var Schema = mongoose.Schema
+
+const secrete_key = 'Node-Js-Learning';
 
 /// secret key
 // const key = 'testing-node'
@@ -49,7 +52,6 @@ var userSchema = new Schema({
     password: {
         type: String,
         // trim: true,
-        lowercase: true,
         required: true,
         validate(value) {
             if (value.toLowerCase().includes('password')) {
@@ -59,7 +61,13 @@ var userSchema = new Schema({
                 throw new Error('Password length must be greater than 5')
             }
         }
-    }
+    },
+    tokens: [{
+            token:{
+                type: String,
+                // required: 
+            }
+        }]
 })
 
 
@@ -75,11 +83,12 @@ userSchema.set('toJSON', {
 userSchema.pre('save', async function (next) {
     var self = this
     console.log('pre saving 1')
-    let password = self.password
+
+    console.log('self password: ' + self.password)
 
     if (self.isModified('password')) {
         let salt = crypto.randomBytes(16).toString('base64');
-        let hash = crypto.createHmac('sha512', salt).update(password).digest("base64");
+        let hash = crypto.createHmac('sha512', salt).update(self.password).digest("base64");
         let newPassword = salt + "$" + hash;
         self.password = newPassword;
     }
@@ -112,14 +121,30 @@ userSchema.statics.findByLoginCredentials = async function (emailId, password) {
 }
 
 userSchema.statics.findByEmail = function (emaiId) {
-    return User.find({
+    return User.findOne({
         email: emaiId
     })
 }
 
+userSchema.methods.generateAuthToken = async function  () {
+    console.log('generateAuthToken Called...');
+    
+    try{
+        const self = this
+    let token = jwt.sign({_id : self._id}, secrete_key)
+    console.log(`tken: ${token}`)
+    self.tokens = self.tokens.concat({token : token})
+    await self.save()
+
+    return token
+    }catch(err){
+        console.log(err['message'])
+        throw new Error(err['message'])
+    }
+}
 
 const User = mongoose.model('User', userSchema)
 
 
 
-module.exports = User
+module.exports = User;
