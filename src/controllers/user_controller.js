@@ -1,4 +1,5 @@
-const User = require('../models/users')
+const crypto = require('crypto');
+const User = require('../models/users');
 
 exports.createUser = async (req, res) => {
     console.log('request params: ', req.body)
@@ -86,9 +87,9 @@ exports.loginUser = async (req, res) => {
             throw new Error(isValid.message)
         }
 
-        const user = await User.findByEmail(req.body.email)
+        const user = await User.findByEmail(req.body.email);
 
-        const isMatch = isUserPasswordMatch(user);
+        const isMatch = isUserPasswordMatch(user, req);
 
         if(!isMatch){
             throw new Error('Unable to login');
@@ -155,13 +156,23 @@ function validateLoginUser(requestData) {
 
 }
 
-function isUserPasswordMatch(user) {
+function isUserPasswordMatch(user, req) {
     console.log('isUserPasswordMatch Called...');
 
     if(!user){
         console.log('User is null or not exist')
         return false;
     }
+
+    let passwordField = user.password.split('$');
+    let salt = passwordField[0]
+    let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
+    console.log(`hash ${hash}`)
+    console.log(`body password ${passwordField[1]}`)
+    if(hash === passwordField[1]){
+        console.log('success')
+    }
+
 
     return true
 
