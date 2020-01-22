@@ -4,6 +4,8 @@ const User = require('./models/users')
 const Task = require('./models/tasks')
 const middleware = require('./middleware/middleware')
 
+const userController = require('./controllers/user_controller')
+
 const app = express()
 const portNumber = process.env.PORT || 3100
 
@@ -16,87 +18,13 @@ app.use(express.json())
 
 /******************************************************CREATE USER************************************************************************************* */
 /// Users creation endpoint (apiUrl: localhost:3100/users)
-app.post('/createUsers', async (req, res) => {
+app.post('/createUsers', [userController.createUser])
 
-    /// request params on '/users' path
-    console.log('request params: ', req.body)
-
-
-    // keys are ['name', 'age', 'email', 'password']
-
-    try {
-
-        let isValid = validateCreateUser(req)
-        console.log(`isValid request: ` + JSON.stringify(isValid))
-
-        if (!isValid.isValid) {
-            throw isValid.message
-        }
-
-        const newUser = new User(req.body)
-
-        ///using async and await
-        const savingData = await newUser.save()
-        console.log(`savingData: ${JSON.stringify(savingData)}`)
-        res.status(200).send(savingData)
-
-    } catch (error) {
-        console.log(error['message'])
-        var message = {
-            status: 505,
-            'message': error['message'],
-        }
-        res.status(505).send(message)
-    }
-
-    /// old way of saving data
-    // newUser.save().then((result) => {
-    //     res.send(result)
-    // }).catch((error) => {
-    //     res.status(400).send(error)
-    // })
-
-})
-
-
-function validateCreateUser(requestData) {
-    console.log('validateCreateUser Called...')
-
-    try {
-
-        const numOfKeys = Object.keys(requestData.body).length
-        const keys = Object.keys(requestData.body)
-
-        if (requestData.method != 'POST') {
-            throw 'In validateCreateUser, method is not POST type'
-        } else if (numOfKeys < 4 || numOfKeys > 4) {
-            throw `num of keys ${numOfKeys} is not equal to 4`
-        } else {
-            keys.forEach((key) => {
-                let value = requestData.body[key];
-
-                if (key != 'age' && (value == null || value.trim().length == 0)) {
-                    throw `${key} is null. ${key} param cannot be empty`
-                }
-            })
-        }
-
-        return {
-            isValid: 1,
-            message: `validateCreateUser request is valid`
-        }
-
-    } catch (error) {
-        console.log(`error: ${error}`)
-        return {
-            isValid: 0,
-            message: error
-        }
-    }
-}
 /****************************************************************************************************************************************************** */
 
+/*******************************************************LOGIN USER **************************************************************************************/
 
+app.post('/loginUser' , [userController.loginUser])
 
 
 

@@ -1,10 +1,6 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
-const CryptoJs = require('crypto-js')
 const crypto = require('crypto')
-const key = crypto.randomBytes(32);
-const iv = crypto.randomBytes(16);
-var SimpleCrypto = require("simple-crypto-js").default;
 /// new model
 /// here we create the model to store the data in structured-way
 /**
@@ -67,6 +63,11 @@ var userSchema = new Schema({
 })
 
 
+// Ensure virtual fields are serialised.
+userSchema.set('toJSON', {
+    virtuals: true
+});
+
 /// mongoose middleware 
 /// pre means an event runs before doing anything
 /// this will run before saving the data
@@ -74,15 +75,14 @@ var userSchema = new Schema({
 userSchema.pre('save', async function (next) {
     var self = this
     console.log('pre saving 1')
+    let password = self.password
 
-    // run when user created or updated
-    // if (self.isModified('password')) {
-
-    //     self.password = 
-
-
-
-    // }
+    if (self.isModified('password')) {
+        let salt = crypto.randomBytes(16).toString('base64');
+        let hash = crypto.createHmac('sha512', salt).update(password).digest("base64");
+        let newPassword = salt + "$" + hash;
+        self.password = newPassword;
+    }
 
     next()
 
@@ -111,9 +111,14 @@ userSchema.statics.findByLoginCredentials = async function (emailId, password) {
 
 }
 
+userSchema.statics.findByEmail = function (emaiId) {
+    return User.find({
+        email: emaiId
+    })
+}
+
 
 const User = mongoose.model('User', userSchema)
-
 
 
 
