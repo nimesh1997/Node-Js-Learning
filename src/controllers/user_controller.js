@@ -22,14 +22,18 @@ exports.createUser = async (req, res) => {
         ///using async and await
         const user = await newUser.save()
 
-        let jwtToken = newUser.generateAuthToken()
+        let jwtToken = await newUser.generateAuthToken()
         console.log(jwtToken)
 
         console.log(`savingData: ${JSON.stringify(user)}`)
         /// response
         const message = {
             status: 200,
-            message: {user, jwtToken}
+            message: 'success',
+            data: {
+                user,
+                jwtToken
+            }
         }
         console.log(JSON.stringify(message))
         res.status(200).send(message)
@@ -38,7 +42,7 @@ exports.createUser = async (req, res) => {
         console.log(error['message'])
         var message = {
             status: 505,
-            'message': error['message'],
+            message: error['message'],
         }
         res.status(505).send(message)
     }
@@ -102,17 +106,20 @@ exports.loginUser = async (req, res) => {
 
         const isMatch = await isUserPasswordMatch(user, req);
 
-        if(!isMatch){
+        if (!isMatch) {
             throw new Error('Unable to login');
         }
 
-        let jwtToken = user.generateAuthToken
-        console.log(`jwtToken: ${jwtToken}`)
+        let jwtToken = await user.generateAuthToken()
 
         /// response
         const message = {
             status: 200,
-            message: {user, jwtToken}
+            message: 'success',
+            data: {
+                user,
+                jwtToken
+            }
         }
         console.log(JSON.stringify(message))
         res.status(200).send(message)
@@ -169,10 +176,11 @@ function validateLoginUser(requestData) {
 
 }
 
+
 function isUserPasswordMatch(user, req) {
     console.log('isUserPasswordMatch Called...');
 
-    if(!user){
+    if (!user) {
         console.log('User is null or not exist')
         return false;
     }
@@ -182,7 +190,7 @@ function isUserPasswordMatch(user, req) {
     let hash = crypto.createHmac('sha512', salt).update(req.body.password).digest("base64");
     console.log(`hash ${hash}`);
     console.log(`body password ${passwordField[1]}`);
-    if(hash === passwordField[1]){
+    if (hash === passwordField[1]) {
         console.log('success');
         return true;
     }

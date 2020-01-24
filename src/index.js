@@ -4,7 +4,7 @@ const User = require('./models/users')
 const Task = require('./models/tasks')
 const middleware = require('./middleware/middleware')
 const userController = require('./controllers/user_controller')
-
+const auth = require('./middleware/auth_middleware')
 
 const app = express()
 const portNumber = process.env.PORT || 3100
@@ -24,11 +24,18 @@ app.post('/createUser', [userController.createUser])
 
 /*******************************************************LOGIN USER **************************************************************************************/
 
-app.post('/loginUser' , [userController.loginUser])
+app.post('/loginUser' , [
+    userController.loginUser
+])  
 
 
+/******************************************************************************************************************************************************* */
 
+/********************************************************GET USER************************************************************************************** */
 
+app.get('/user', [
+    auth.auth
+])
 
 
 

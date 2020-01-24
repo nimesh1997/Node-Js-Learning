@@ -63,11 +63,11 @@ var userSchema = new Schema({
         }
     },
     tokens: [{
-            token:{
-                type: String,
-                // required: 
-            }
-        }]
+        token: {
+            type: String,
+            // required: 
+        }
+    }]
 })
 
 
@@ -126,18 +126,37 @@ userSchema.statics.findByEmail = function (emaiId) {
     })
 }
 
-userSchema.methods.generateAuthToken = async function  () {
+userSchema.methods.generateAuthToken = async function () {
     console.log('generateAuthToken Called...');
-    
-    try{
-        const self = this
-    let token = jwt.sign({_id : self._id}, secrete_key)
-    console.log(`tken: ${token}`)
-    self.tokens = self.tokens.concat({token : token})
-    await self.save()
 
-    return token
-    }catch(err){
+    let self = this
+    // jwt.sign({
+    //     _id: self._id
+    // }, secrete_key).then((token) => {
+    //     console.log(`token : ${token}`);
+    //     self.tokens = self.tokens.concat({
+    //         token: token
+    //     });
+    //     self.save();
+    //     return token
+    // }).catch((err) => {
+    //     console.log(`err : ${err['message']}`)
+    //     return new Error(err['message'])
+    // })
+
+    try {
+        const self = this
+        let token = jwt.sign({
+            _id: self._id
+        }, secrete_key)
+        console.log(`tken: ${token}`)
+        self.tokens = self.tokens.concat({
+            token: token
+        })
+        await self.save()
+
+        return token
+    } catch (err) {
         console.log(err['message'])
         throw new Error(err['message'])
     }
