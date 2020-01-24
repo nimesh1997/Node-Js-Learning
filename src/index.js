@@ -33,12 +33,20 @@ app.post('/loginUser' , [
 
 /********************************************************GET USER************************************************************************************** */
 
-app.get('/user', [
-    auth.auth
+app.get('/user/me', [
+    auth.auth,
+    userController.getUser
 ])
 
+/****************************************************************************************************************************************************** */
 
 
+/********************************************************LOGUT USER*************************************************************************************** */
+
+app.post('/logOutUser', [
+    auth.auth,
+    userController.logOutUser
+])
 
 
 
@@ -146,78 +154,15 @@ function validateReadAllUser(requestData) {
 
 /****************************************************************************************************************************************************** */
 
-/*************************************************************************login user *********************************************************************/
+
+/********************************************************************UPDATE USER************************************************************************ */
+
+app.post('/updateUserProfile', [
+    auth.auth,
+    userController.updateUserProfile
+])
 
 
-app.post('/loginuser', async (req, res) => {
-    try {
-        const isValid = validateLoginUser(req);
-
-        if (!isValid.isValid) {
-            throw new Error(isValid.message)
-        }
-
-        const user = await User.findByLoginCredentials(req.body.email, req.body.password)
-
-        /// response
-        const message = {
-            status: 200,
-            message: user
-        }
-        console.log(JSON.stringify(message))
-        res.status(200).send(message)
-
-    } catch (error) {
-        const message = {
-            status: 505,
-            message: error['message']
-        }
-        console.log(JSON.stringify(message))
-        res.status(200).send(message)
-    }
-
-
-})
-
-function validateLoginUser(requestData) {
-    console.log('validateLoginUser Called...')
-
-
-    try {
-        const numOfKeys = Object.keys(requestData.body).length
-
-        const keys = Object.keys(requestData.body)
-
-        if (requestData.method != 'POST') {
-            throw new Error('In validateLoginUser, method is not POST type')
-        }
-
-        if (numOfKeys != 2) {
-            throw new Error(`In validateLoginUser, keys given ${numOfKeys} is not equal to 2`)
-        }
-
-        if (!requestData.body.email) {
-            throw new Error(`In validateLoginUser, email is empty or null`)
-        }
-
-        if (!requestData.body.password) {
-            throw new Error(`In validateLoginUser, password is empty or null`)
-        }
-
-        return {
-            isValid: 1,
-            message: `validateLoginUser request is valid`
-        }
-    } catch (error) {
-        console.log(`validateLoginUser catchError: ${error['message']}`)
-        return {
-            isValid: 0,
-            message: error['message']
-        }
-    }
-
-
-}
 
 /******************************************************************************************************************************************************* */
 
@@ -377,16 +322,16 @@ app.post('/updateUserById', async (req, res) => {
         console.log('users: ' + user)
 
         if (!user)
-            res.status(404).send(`No id is present with ${id}`)
-        res.send(user)
+            res.status(404).send(`No id is present with ${id}`);
+        res.send(user);
 
     } catch (error) {
-        console.log(error)
-        res.status(505).send(error)
+        console.log(error);
+        res.status(505).send(error);
     }
 
 
-})
+});
 
 app.patch('/updateTask/:_id', async (req, res) => {
     console.log('body:' + req.body)
@@ -435,10 +380,10 @@ app.patch('/updateTask/:_id', async (req, res) => {
     }
 
 
-})
+});
 
 
 //listening
 app.listen(portNumber, () => {
     console.log(`listening on port ${portNumber}`)
-})
+});

@@ -76,6 +76,7 @@ userSchema.set('toJSON', {
     virtuals: true
 });
 
+
 /// mongoose middleware 
 /// pre means an event runs before doing anything
 /// this will run before saving the data
@@ -83,8 +84,6 @@ userSchema.set('toJSON', {
 userSchema.pre('save', async function (next) {
     var self = this
     console.log('pre saving 1')
-
-    console.log('self password: ' + self.password)
 
     if (self.isModified('password')) {
         let salt = crypto.randomBytes(16).toString('base64');
@@ -130,20 +129,7 @@ userSchema.methods.generateAuthToken = async function () {
     console.log('generateAuthToken Called...');
 
     let self = this
-    // jwt.sign({
-    //     _id: self._id
-    // }, secrete_key).then((token) => {
-    //     console.log(`token : ${token}`);
-    //     self.tokens = self.tokens.concat({
-    //         token: token
-    //     });
-    //     self.save();
-    //     return token
-    // }).catch((err) => {
-    //     console.log(`err : ${err['message']}`)
-    //     return new Error(err['message'])
-    // })
-
+ 
     try {
         const self = this
         let token = jwt.sign({
@@ -160,6 +146,17 @@ userSchema.methods.generateAuthToken = async function () {
         console.log(err['message'])
         throw new Error(err['message'])
     }
+}
+
+userSchema.methods.hidePrivateData = function () {
+    let self = this;
+    let userObject = self.toObject();
+
+    delete userObject.password;
+    delete userObject.tokens;
+
+    return userObject;
+
 }
 
 const User = mongoose.model('User', userSchema)

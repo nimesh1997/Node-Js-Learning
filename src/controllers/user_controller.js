@@ -102,7 +102,7 @@ exports.loginUser = async (req, res) => {
             throw new Error(isValid.message)
         }
 
-        const user = await User.findByEmail(req.body.email);
+        let user = await User.findByEmail(req.body.email);
 
         const isMatch = await isUserPasswordMatch(user, req);
 
@@ -111,6 +111,8 @@ exports.loginUser = async (req, res) => {
         }
 
         let jwtToken = await user.generateAuthToken()
+
+        user = user.hidePrivateData();
 
         /// response
         const message = {
@@ -195,5 +197,130 @@ function isUserPasswordMatch(user, req) {
         return true;
     }
     return false;
+
+}
+
+exports.getUser = async (req, res) => {
+    console.log('getUser Called...');
+    console.log(req.header('Authorization'));
+    let user = req.user
+    let message = {
+        status : 200,
+        message : 'success',
+        data : req.user.hidePrivateData()
+    }
+    res.status(200).send(message);
+}
+
+
+exports.logOutUser = async (req, res) => {
+    console.log('logOutUser called...');
+
+    try{
+        req.user.tokens = req.user.tokens.filter((token) => {
+            console.log(`filter token: ${token}`);
+            return token.token !== req.token
+        });
+        await req.user.save();
+
+        let message = {
+            status : 200,
+            message: 'success',
+            data : req.user
+        }
+
+        res.status(200).send(message);
+
+    }catch(err){
+        console.log(`error: ${err['messsage']}`);
+        let message = {
+            status:505,
+            message:'fail'
+        }
+        res.status(200).send(message);
+    }
+    
+
+}
+
+
+exports.updateUserProfile = async (req, res) => {
+    console.log('updateUserProfile Called...');
+
+    
+    try {
+
+    const isValid = isValidateUpdateUserProfileRequest(req);
+
+    if(!isValid.isValid){
+        throw new Error(isValid.message);
+    }
+       
+        const keysValue = Object.keys(req.body);
+
+        keysValue.forEach(function (update) {
+            req.user[update] = req.body[update]
+        })
+
+        let user = await req.user.save()
+
+        /// old way
+        /// below method bypasses the middleware in user.js
+        // const user = await User.findByIdAndUpdate(id, req.body, {
+        //     new: true,
+        //     runValidators: true
+        // })
+
+        console.log('updated user data: ' + user)
+
+        if (!user){
+            throw new Error('No user is existed');
+        }
+
+        let message = {
+            status : 200,
+            message : 'success',
+            data : user.hidePrivateData()
+        }
+
+        res.status(200).send(message);
+    } catch (error) {
+        console.log(error['message']);
+        let message = {
+            status : 505,
+            message : error['message']
+        }
+        res.status(200).send(message);
+    }
+}
+
+function isValidateUpdateUserProfileRequest(requestData) {
+    console.log('isValidateUpdateUserProfileRequest Called...');
+
+    try{
+        const keysValue = Object.keys(requestData.body)
+        const allowedUpdateKey = ['name', 'age', 'email', 'password'];
+    
+        const valid = keysValue.every((value) => {
+            return allowedUpdateKey.includes(value);
+        });
+    
+        console.log(`valid: ${valid}`);
+    
+        if (!valid){
+            throw new Error('Invalid request for update');
+        }
+        return {
+            isValid : 1,
+            message : 'isValidateUpdateUserProfileRequest is Valid'
+        };
+    }catch(err){
+        console.log(`error: ${err['message']}`);
+        return {
+            isValid: 0,
+            message: err['message']
+        };
+    }
+
 
 }
