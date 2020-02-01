@@ -13,11 +13,11 @@ exports.auth = async function (req, res, next) {
         console.log(`isJwtVerify: ${JSON.stringify(isJwtVerify)}`);
         let user = await User.findOne({_id : isJwtVerify._id});
         console.log(`user data: ${user}`);
-        req.user = user;
-        req.token = token;
         if(!user){
             throw new Error('user is not exist')
         }
+        req.user = user;
+        req.token = token;
         return next();
 
     } catch (err) {

@@ -44,7 +44,7 @@ exports.createUser = async (req, res) => {
             status: 505,
             message: error['message'],
         }
-        res.status(505).send(message)
+        res.status(200).send(message)
     }
 
     /// old way of saving data

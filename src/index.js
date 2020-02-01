@@ -1,10 +1,11 @@
-const express = require('express')
-require('./db/mongoose')
-const User = require('./models/users')
-const Task = require('./models/tasks')
-const middleware = require('./middleware/middleware')
-const userController = require('./controllers/user_controller')
-const auth = require('./middleware/auth_middleware')
+const express = require('express');
+require('./db/mongoose');
+const User = require('./models/users');
+const Task = require('./models/tasks');
+const middleware = require('./middleware/middleware');
+const userController = require('./controllers/user_controller');
+const auth = require('./middleware/auth_middleware');
+const taskController = require('./controllers/task_controller');
 
 const app = express()
 const portNumber = process.env.PORT || 3100
@@ -24,9 +25,9 @@ app.post('/createUser', [userController.createUser])
 
 /*******************************************************LOGIN USER **************************************************************************************/
 
-app.post('/loginUser' , [
+app.post('/loginUser', [
     userController.loginUser
-])  
+])
 
 
 /******************************************************************************************************************************************************* */
@@ -161,7 +162,22 @@ app.post('/updateUserProfile', [
     auth.auth,
     userController.updateUserProfile
 ])
+/******************************************************************************************************************************************************* */
 
+
+/********************************************************************CREATE TASK************************************************************************ */
+
+app.post('/createTask', [
+    auth.auth,
+    taskController.createTask
+])
+
+/********************************************************************FETCH TASK DETAILS************************************************************************ */
+
+app.post('/getTask', [
+    auth.auth,
+    taskController.getTask
+])
 
 
 /******************************************************************************************************************************************************* */

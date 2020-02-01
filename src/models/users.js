@@ -67,9 +67,18 @@ var userSchema = new Schema({
             type: String,
             // required: 
         }
-    }]
+    }],
+    // task : {
+    //     type : Schema.Types.ObjectId,
+    //     ref: 'Task'
+    // }
 })
 
+userSchema.virtual('tasks', {
+    ref : 'Task',
+    localField : '_id',
+    foreignField : 'userDetails'
+})
 
 // Ensure virtual fields are serialised.
 userSchema.set('toJSON', {
@@ -103,7 +112,7 @@ userSchema.statics.findByLoginCredentials = async function (emailId, password) {
         email: emailId
     })
 
-    console.log(user['password'])
+    // console.log(user['password'])
 
     if (!user) {
         console.log('user is null')
@@ -129,7 +138,7 @@ userSchema.methods.generateAuthToken = async function () {
     console.log('generateAuthToken Called...');
 
     let self = this
- 
+
     try {
         const self = this
         let token = jwt.sign({
