@@ -204,6 +204,7 @@ exports.getUser = async (req, res) => {
     console.log('getUser Called...');
     console.log(req.header('Authorization'));
     let user = req.user
+    console.log(`user: ${JSON.stringify(user)}`);
     let message = {
         status : 200,
         message : 'success',

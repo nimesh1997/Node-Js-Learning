@@ -164,6 +164,8 @@ userSchema.methods.hidePrivateData = function () {
     delete userObject.password;
     delete userObject.tokens;
 
+    console.log(`userObject: ${JSON.stringify(userObject)}`);
+
     return userObject;
 
 }

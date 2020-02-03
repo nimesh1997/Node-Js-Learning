@@ -109,6 +109,8 @@ exports.getTask = async function (req, res) {
         ///details with the task details and also user details
         const details = await task.populate('userDetails').execPopulate('User');
 
+        console.log(`details: ${JSON.stringify(details)}`);
+
         // let task = await Task.find({
         //     userDetails : req.user._id
         // });
@@ -116,17 +118,16 @@ exports.getTask = async function (req, res) {
         // /// this will populate all the task of authenticated user
         // const details = await req.user.populate('tasks').execPopulate();
 
-        let user = details.userDetails;
-        user =  user.hidePrivateData();
+        let user = hidePrivateData(details);
 
-        console.log(`user hide privatedata: ${JSON.stringify(user)}`);
-        details.userDetails = user;
+        console.log(`hide privatedata: ${JSON.stringify(user)}`);
+        // details.userDetails = user;
 
-        console.log(`details: ${JSON.stringify(details)}`);
+        // console.log(`details: ${JSON.stringify(details)}`);
         let returnObject = {
             status: 200,
             message: "success",
-            data: details
+            data: user
         }
 
         return res.status(200).send(returnObject);
@@ -143,4 +144,24 @@ exports.getTask = async function (req, res) {
         return res.status(200).send(returnObject);
     }
 
+}
+
+function hidePrivateData(details){
+    console.log('hidePrivateData Called...');
+    let returnObject = details.toObject();
+    let userDetails = details.userDetails.toObject();
+    delete returnObject.userDetails;
+
+    console.log(`returnObject: ${JSON.stringify(returnObject)}`)
+
+    delete userDetails.password;
+    delete userDetails.tokens;
+
+
+    console.log(`userDetails: ${JSON.stringify(userDetails)}`)
+
+    returnObject.userDetails = userDetails;
+
+    return returnObject;
+    
 }
