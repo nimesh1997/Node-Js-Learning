@@ -217,17 +217,21 @@ exports.getUser = async (req, res) => {
 exports.logOutUser = async (req, res) => {
     console.log('logOutUser called...');
 
+    console.log(`request: ${JSON.stringify(req.user)}`)
+
     try{
         req.user.tokens = req.user.tokens.filter((token) => {
             console.log(`filter token: ${token}`);
             return token.token !== req.token
         });
-        await req.user.save();
+
+        let user = await req.user.save();
+        
 
         let message = {
             status : 200,
             message: 'success',
-            data : req.user
+            data : user.hidePrivateData()
         }
 
         res.status(200).send(message);

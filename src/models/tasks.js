@@ -8,7 +8,12 @@ const mongoose = require('mongoose')
  * }
  * 
  */
-const Task = mongoose.model('Task', {
+
+var Schema = mongoose.Schema;
+
+const secrete_key = 'Node-Js-Learning';
+
+var taskSchema = new Schema({
     'description': {
         type: String,
         required: true,
@@ -17,12 +22,31 @@ const Task = mongoose.model('Task', {
         type: Boolean,
         default: false
     },
-    'userDetails' :{
+    'userDetails': {
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'User',
+        ref: 'User',
         required: true
     }
 })
 
+// const Task = mongoose.model('Task', {
+//     'description': {
+//         type: String,
+//         required: true,
+//     },
+//     'completed': {
+//         type: Boolean,
+//         default: false
+//     },
+//     'userDetails': {
+//         type: mongoose.Schema.Types.ObjectId,
+//         ref: 'User',
+//         required: true
+//     }
+// })
+
 ///export it so that access by other files also
-module.exports = Task
+
+const Task = mongoose.model('Task', taskSchema);
+
+module.exports = Task;
