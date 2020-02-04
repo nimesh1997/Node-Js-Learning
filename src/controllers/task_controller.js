@@ -169,6 +169,8 @@ function hidePrivateData(details) {
     return returnObject;
 
 }
+
+
 /***************************************************************************************************************************************************** */
 
 /// this method will update the task details by id
@@ -190,8 +192,9 @@ exports.updateTask = async function (req, res) {
 
         console.log(`keysValue: ${JSON.stringify(keysValue)}`);
 
-        let task = await Task.findById({
-            _id: requestBody.taskId
+        let task = await Task.findOne({
+            _id: requestBody.taskId,
+            userDetails: req.user._id
         });
 
         if (!task) {
@@ -201,7 +204,7 @@ exports.updateTask = async function (req, res) {
         console.log(`task: ${JSON.stringify(task)}`);
 
         keysValue.forEach(function (update) {
-            if(update != 'taskId'){
+            if (update != 'taskId') {
                 task[update] = requestBody[update];
             }
         })
@@ -267,6 +270,90 @@ function validateUpdateTask(requestData) {
         return {
             isValid: 0,
             message: `validateUpdateTask request is invalid`
+        };
+
+    }
+
+}
+
+/****************************************************************************************************************************************************** */
+
+exports.deleteTaskById = async function (req, res) {
+    console.log('deleteTaskById Called...');
+
+    let requestBody = req.body;
+    console.log(`requestBody: ${JSON.stringify(requestBody)}`);
+
+    try {
+
+        const isValidRequest = validateDeleteTaskById(req)
+
+        if (!isValidRequest.isValid) {
+            throw isValidRequest.message;
+        }
+
+        const task = await Task.findOneAndDelete({
+            _id: requestBody.taskId,
+            userDetails: req.user._id
+        });
+
+        console.log(`delete task: ${JSON.stringify(task)}`);
+
+        if (!task) {
+            throw new Error(`task is not exist`);
+        }
+
+        let returnObject = {
+            status: 200,
+            message: 'successful',
+            data: task
+        }
+        return res.status(200).send(returnObject);
+
+
+
+    } catch (err) {
+        console.log(`deleteTaskById catchError: ${err}`);
+
+        let returnObject = {
+            status: 505,
+            message: err['message'],
+        };
+
+        return res.status(200).send(returnObject);
+
+    }
+}
+
+function validateDeleteTaskById(req) {
+    console.log('validateDeleteTaskById Called...');
+
+    const numOfKeys = Object.keys(req.body).length;
+    console.log(`requestBody: ${JSON.stringify(req.body)}`);
+    try {
+
+        if (req.method != 'POST') {
+            throw new Error('In validateDeleteTaskById method is not POST type');
+        }
+
+        if (numOfKeys < 1) {
+            throw new Error('In validateDeleteTaskById, num ');
+        }
+
+        if (!req.body.taskId) {
+            throw new Error('In validateDeleteTaskById, taskId cannot be null');
+        }
+
+        return {
+            isValid: 1,
+            message: 'validateDeleteTaskById request is valid'
+        };
+
+    } catch (err) {
+        console.log(`validateDeleteTaskById: ${err['message']}`);
+        return {
+            isValid: 0,
+            message: 'validateDeleteTaskById request is invalid'
         };
 
     }
