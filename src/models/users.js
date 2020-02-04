@@ -76,8 +76,8 @@ var userSchema = new Schema({
 
 userSchema.virtual('tasks', {
     ref : 'Task',
-    localField : '_id',
-    foreignField : 'userDetails'
+    localField : '_id', // local data is stored
+    foreignField : 'userDetails' //userId
 })
 
 // Ensure virtual fields are serialised.

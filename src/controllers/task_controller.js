@@ -94,6 +94,7 @@ exports.getTask = async function (req, res) {
     try {
 
         /// this will populate the single task of authenticated user 
+        /// If task Id not match and userId is not present in task collection then result will be error
         let task = await Task.findOne({
             _id: req.body.taskId,
             userDetails: req.user._id
@@ -106,24 +107,25 @@ exports.getTask = async function (req, res) {
         console.log(`task: ${JSON.stringify(task)}`);
 
 
-        ///details with the task details and also user details
+        ///details populate with the user details
         const details = await task.populate('userDetails').execPopulate('User');
 
         console.log(`details: ${JSON.stringify(details)}`);
 
+        /// this will populate all the task
         // let task = await Task.find({
         //     userDetails : req.user._id
         // });
 
-        // /// this will populate all the task of authenticated user
+        // /// this will populate all the task of authenticated user (virtual data not stored in user node)
         // const details = await req.user.populate('tasks').execPopulate();
 
+
+        /// this will hide the tokens and passwords key of user object
         let user = hidePrivateData(details);
 
         console.log(`hide privatedata: ${JSON.stringify(user)}`);
-        // details.userDetails = user;
 
-        // console.log(`details: ${JSON.stringify(details)}`);
         let returnObject = {
             status: 200,
             message: "success",
@@ -146,7 +148,9 @@ exports.getTask = async function (req, res) {
 
 }
 
-function hidePrivateData(details){
+
+/**************************************************************************************************************************************************** */
+function hidePrivateData(details) {
     console.log('hidePrivateData Called...');
     let returnObject = details.toObject();
     let userDetails = details.userDetails.toObject();
@@ -163,5 +167,108 @@ function hidePrivateData(details){
     returnObject.userDetails = userDetails;
 
     return returnObject;
-    
+
+}
+/***************************************************************************************************************************************************** */
+
+/// this method will update the task details by id
+exports.updateTask = async function (req, res) {
+    console.log('updateTask Called...');
+
+    let requestBody = req.body;
+    console.log(`requestBody: ${JSON.stringify(requestBody)}`);
+
+    try {
+
+        const isValidRequest = validateUpdateTask(req);
+
+        if (!isValidRequest.isValid) {
+            throw isValidRequest.message
+        };
+
+        let keysValue = Object.keys(requestBody);
+
+        console.log(`keysValue: ${JSON.stringify(keysValue)}`);
+
+        let task = await Task.findById({
+            _id: requestBody.taskId
+        });
+
+        if (!task) {
+            throw new Error('task is not exist');
+        }
+
+        console.log(`task: ${JSON.stringify(task)}`);
+
+        keysValue.forEach(function (update) {
+            if(update != 'taskId'){
+                task[update] = requestBody[update];
+            }
+        })
+
+        console.log(`task: ${JSON.stringify(task)}`);
+
+        ///save the updated details
+        await task.save();
+
+        let returnObject = {
+            status: 200,
+            message: 'success',
+            data: task
+        }
+
+        console.log(`returnObject: ${JSON.stringify(returnObject)}`);
+        return res.status(200).send(returnObject);
+
+
+
+    } catch (error) {
+        console.log(`updateTask catchError: ${error}`);
+
+        let returnObject = {
+            status: 505,
+            message: 'fail'
+        }
+
+        console.log(`returnObject: ${JSON.stringify(returnObject)}`);
+
+        return res.status(200).send(returnObject);
+    }
+
+
+}
+
+function validateUpdateTask(requestData) {
+    console.log('validateUpdateTask Called...');
+
+    const numOfKeys = Object.keys(requestData.body).length;
+    try {
+
+        if (requestData.method != 'POST') {
+            throw 'In validateUpdateTask, method is not POST type'
+        }
+
+        if (numOfKeys < 1) {
+            throw `In validateUpdateTask, number of keys ${numOfKeys} is not less than  1`
+        }
+
+        if (!requestData.body.taskId) {
+            throw `In validateUpdateTask, taskId is null or empty`
+        }
+
+        return {
+            isValid: 1,
+            message: `validateUpdateTask request is valid`
+        };
+
+    } catch (error) {
+        console.log(`InValidateUpdateTask catch error: ${error['message']}`);
+
+        return {
+            isValid: 0,
+            message: `validateUpdateTask request is invalid`
+        };
+
+    }
+
 }
